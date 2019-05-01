@@ -32,7 +32,7 @@ $num_instances = 3
 $instance_name_prefix = "k8s"
 $vm_gui = false
 $vm_memory = 2048
-$vm_cpus = 1
+$vm_cpus = 2
 $shared_folders = {}
 $forwarded_ports = {}
 $subnet = "172.17.8"
@@ -54,6 +54,12 @@ $override_disk_size = false
 $disk_size = "20GB"
 $local_path_provisioner_enabled = false
 $local_path_provisioner_claim_root = "/opt/local-path-provisioner/"
+
+make_cert_dir = <<SCRIPT
+sudo mkdir -p /usr/local/share/ca-certificates/extra/
+sudo mv /tmp/certs/* /usr/local/share/ca-certificates/extra/
+SCRIPT
+
 
 $playbook = "cluster.yml"
 
@@ -114,8 +120,10 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = vm_name
 
       if Vagrant.has_plugin?("vagrant-proxyconf")
-        node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || ""
-        node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  ""
+        #node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || ""
+        #node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  ""
+        node.proxy.http      = "http://10.213.17.89:3128"
+        node.proxy.https     = "http://10.213.17.89:3128"
         node.proxy.no_proxy = $no_proxy
       end
 
@@ -174,6 +182,11 @@ Vagrant.configure("2") do |config|
 
       # Disable swap for each vm
       node.vm.provision "shell", inline: "swapoff -a"
+      node.vm.provision "file", source: "./certs/", destination: "/tmp/"
+      node.vm.provision "shell", privileged: false, inline: make_cert_dir, keep_color: true, name: "make_cert_dir"
+      node.vm.provision "shell", privileged: false, inline: "sudo update-ca-certificates", keep_color: true, name: "update-ca-certificates"
+      node.vm.provision "shell", privileged: false, inline: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -", keep_color: true, name: "add docker key"
+
 
       host_vars[vm_name] = {
         "ip": ip,

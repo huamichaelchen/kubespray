@@ -39,9 +39,9 @@ loadbalancer_apiserver_healthcheck_port: 8081
 # kubelet_load_modules: false
 
 ## Upstream dns servers
-# upstream_dns_servers:
-#   - 8.8.8.8
-#   - 8.8.4.4
+upstream_dns_servers:
+- 8.8.8.8
+- 8.8.4.4
 
 ## There are some changes specific to the cloud providers
 ## for instance we need to encapsulate packets with some network plugins
@@ -53,8 +53,8 @@ loadbalancer_apiserver_healthcheck_port: 8081
 # cloud_provider:
 
 ## Set these proxy values in order to update package manager and docker daemon to use proxies
-# http_proxy: ""
-# https_proxy: ""
+http_proxy: "http://10.213.17.89:3128"
+https_proxy: "http://10.213.17.89:3128"
 
 ## Refer to roles/kubespray-defaults/defaults/main.yml before modifying no_proxy
 # no_proxy: ""
